@@ -3030,6 +3030,11 @@ if (typeof window.Piwik !== 'object') {
 
                 // Request Content-Type header value; applicable when POST request method is used for submitting tracking events
                 configRequestContentType = defaultRequestContentType,
+				
+				defaultRequestTimeout = 0,
+				
+				// Maximum time in milliseconds to wait for a GET or POST tracking request to complete before aborting
+				configRequestTimeout = defaultRequestTimeout, 
 
                 // Tracker URL
                 configTrackerUrl = trackerUrl || '',
@@ -3508,6 +3513,21 @@ if (typeof window.Piwik !== 'object') {
                     if (typeof callback === 'function') { callback(); }
                 };
                 image.src = configTrackerUrl + (configTrackerUrl.indexOf('?') < 0 ? '?' : '&') + request;
+                
+                // If the configRequestTimeout param is set, then add a timer that 
+                // aborts the image request if the request is not completed 
+                // within the alloted time
+                if(configRequestTimeout > 0) {
+	                setTimeout(
+	                	function() {
+							if(!image.complete) {
+								image.src = '';
+							}
+						},
+						configRequestTimeout
+	                );
+                }
+                
             }
 
             function sendPostRequestViaSendBeacon(request)
@@ -3590,6 +3610,10 @@ if (typeof window.Piwik !== 'object') {
                         };
 
                         xhr.setRequestHeader('Content-Type', configRequestContentType);
+                        
+                        if(configRequestTimeout > 0) {
+                        	xhr.timeout = configRequestTimeout;
+                        }
 
                         xhr.send(request);
                     } catch (e) {
@@ -6285,6 +6309,23 @@ if (typeof window.Piwik !== 'object') {
             this.setRequestContentType = function (requestContentType) {
                 configRequestContentType = requestContentType || defaultRequestContentType;
             };
+			
+			/**
+             * Set request timeout value, default is 0 in which case no attempt will be made to abort long-running tracking requests.
+			 * A value greater than 0 will cause the tracker to attempt to abort open GET and POST requests that have been pending a response 
+			 * for more than requestTimeout milliseconds.
+             *
+             * @param int requestContentType Timeout in milliseconds
+             */
+            this.setRequestTimeout = function (requestTimeout) {
+                configRequestTimeout = typeof timeout === 'number' && timeout>=0 ? requestTimeout : defaultRequestTimeout;
+            };
+            
+            this.getRequestTimeout = function () {
+                return configRequestTimeout;
+            };
+            
+            
 
             /**
              * Override referrer
