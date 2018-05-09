@@ -6318,7 +6318,7 @@ if (typeof window.Piwik !== 'object') {
              * @param int requestContentType Timeout in milliseconds
              */
             this.setRequestTimeout = function (requestTimeout) {
-                configRequestTimeout = typeof timeout === 'number' && timeout>=0 ? requestTimeout : defaultRequestTimeout;
+                configRequestTimeout = typeof requestTimeout === 'number' && requestTimeout>=0 ? requestTimeout : defaultRequestTimeout;
             };
             
             this.getRequestTimeout = function () {
